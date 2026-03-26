@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html class="light" lang="zh-CN">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>AI钱包 - AI助手</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#595c60",
+                        "surface-tint": "#6d5a00",
+                        "on-primary-fixed": "#463900",
+                        "on-primary": "#fff2cf",
+                        "surface-container-low": "#eaf1ff",
+                        "on-error-container": "#520c00",
+                        "on-surface": "#252f3d",
+                        "secondary-container": "#e1e2e8",
+                        "inverse-surface": "#050f1b",
+                        "on-primary-container": "#5c4b00",
+                        "on-background": "#252f3d",
+                        "background": "#f4f6ff",
+                        "error": "#b02500",
+                        "on-secondary-container": "#4f5256",
+                        "surface-container-highest": "#cfdef6",
+                        "secondary-dim": "#4d5054",
+                        "error-dim": "#b92902",
+                        "on-primary-fixed-variant": "#675400",
+                        "surface-container-high": "#d6e3fa",
+                        "error-container": "#f95630",
+                        "surface-variant": "#cfdef6",
+                        "primary-dim": "#5f4e00",
+                        "outline-variant": "#a4aebf",
+                        "on-tertiary-fixed-variant": "#006940",
+                        "tertiary-fixed": "#60feae",
+                        "secondary-fixed-dim": "#d3d4da",
+                        "on-tertiary-container": "#005e39",
+                        "tertiary-dim": "#005c37",
+                        "inverse-on-surface": "#939dae",
+                        "secondary-fixed": "#e1e2e8",
+                        "on-tertiary-fixed": "#00492b",
+                        "primary-fixed-dim": "#efc927",
+                        "surface-container": "#dce9ff",
+                        "on-error": "#ffefec",
+                        "on-secondary-fixed": "#3d3f44",
+                        "primary": "#6d5a00",
+                        "tertiary": "#006940",
+                        "secondary": "#595c60",
+                        "on-tertiary": "#caffdb",
+                        "on-surface-variant": "#525c6b",
+                        "primary-container": "#fed737",
+                        "primary-fixed": "#fed737",
+                        "surface-dim": "#c5d5ef",
+                        "surface": "#f4f6ff",
+                        "surface-bright": "#f4f6ff",
+                        "outline": "#6d7787",
+                        "on-secondary": "#f1f2f8",
+                        "tertiary-container": "#60feae",
+                        "tertiary-fixed-dim": "#4fefa1",
+                        "inverse-primary": "#fed737"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+    <style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .ai-bubble {
+            background: linear-gradient(135deg, #ffffff 0%, #f4f6ff 100%);
+        }
+        .user-bubble {
+            background: #fed737;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .chat-message {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeInUp 0.3s ease forwards;
+        }
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body min-h-screen flex flex-col">
+    <!-- TopAppBar -->
+    <header class="bg-[#f4f6ff] flex justify-between items-center w-full px-6 h-16 fixed top-0 z-50">
+        <div class="flex items-center gap-4">
+            <a href="index.html" class="text-[#6d5a00] hover:bg-black/5 p-2 rounded-full transition-colors">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <h1 class="font-['Inter'] font-bold text-lg tracking-tight text-[#6d5a00]">AI助手</h1>
+        </div>
+        <div class="flex items-center">
+            <div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-highest flex items-center justify-center border-2 border-primary-container">
+                <span class="material-symbols-outlined text-primary text-xl">smart_toy</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Canvas -->
+    <main class="flex-1 mt-16 mb-32 overflow-y-auto px-4 py-8 max-w-4xl mx-auto w-full flex flex-col gap-8" id="chat-container">
+        <!-- Welcome / AI Status Indicator -->
+        <div class="flex flex-col items-center text-center space-y-3 pt-4" id="welcome-section">
+            <div class="bg-primary-container p-4 rounded-full shadow-lg shadow-primary-container/20">
+                <span class="material-symbols-outlined text-on-primary-container text-4xl" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+            </div>
+            <div>
+                <h2 class="text-xl font-headline font-extrabold tracking-tight text-on-surface">Lumina Intelligence</h2>
+                <p class="text-on-surface-variant text-sm font-medium">您的专属财务与运营优化专家</p>
+            </div>
+        </div>
+
+        <!-- Chat Messages Container -->
+        <div id="messages-container" class="space-y-8 pb-8">
+            <!-- Messages will be added here dynamically -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="flex-1 flex flex-col items-center justify-center text-center space-y-4 py-12">
+            <div class="bg-surface-container-low p-6 rounded-full">
+                <span class="material-symbols-outlined text-4xl text-outline">question_answer</span>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-on-surface">开始提问</h3>
+                <p class="text-sm text-on-surface-variant mt-1">基于您的销售数据，AI助手可以提供经营建议</p>
+            </div>
+            <div class="flex flex-wrap justify-center gap-2 mt-4">
+                <button onclick="sendQuickQuestion('今日销售情况如何？')" class="px-4 py-2 text-xs font-medium bg-surface-container rounded-full hover:bg-primary-container transition-colors">今日销售情况如何？</button>
+                <button onclick="sendQuickQuestion('哪些商品最畅销？')" class="px-4 py-2 text-xs font-medium bg-surface-container rounded-full hover:bg-primary-container transition-colors">哪些商品最畅销？</button>
+                <button onclick="sendQuickQuestion('如何提升客单价？')" class="px-4 py-2 text-xs font-medium bg-surface-container rounded-full hover:bg-primary-container transition-colors">如何提升客单价？</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Chat Input Area -->
+    <div class="fixed bottom-24 left-0 w-full px-4 z-40">
+        <div class="max-w-4xl mx-auto glass-panel rounded-full shadow-lg border border-outline-variant/10 p-2 flex items-center gap-2">
+            <button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors" onclick="document.getElementById('file-upload-mini').click()">
+                <span class="material-symbols-outlined">add_circle</span>
+            </button>
+            <input id="file-upload-mini" type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleFileUpload(event)"/>
+            <input id="chat-input" class="flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-outline text-sm py-2" placeholder="向AI助手提问..." type="text" onkeypress="handleChatKeyPress(event)"/>
+            <button id="send-btn" class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shadow-md active:scale-90 transition-transform" onclick="sendChatMessage()">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- BottomNavBar -->
+    <nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 backdrop-blur-md shadow-[0_-12px_32px_rgba(37,47,61,0.06)] rounded-t-[1.5rem]">
+        <a href="index.html" class="flex flex-col items-center justify-center text-slate-400 hover:text-[#6d5a00] hover:opacity-80 transition-opacity">
+            <span class="material-symbols-outlined mb-1">dashboard</span>
+            <span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest">首页</span>
+        </a>
+        <a href="analysis.html" class="flex flex-col items-center justify-center text-slate-400 hover:text-[#6d5a00] hover:opacity-80 transition-opacity">
+            <span class="material-symbols-outlined mb-1">insights</span>
+            <span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest">数据分析</span>
+        </a>
+        <a href="ai-assistant.html" class="flex flex-col items-center justify-center bg-[#fed737] text-[#6d5a00] rounded-full px-4 py-1 shadow-[0_0_8px_rgba(254,215,55,0.4)] transition-transform active:scale-90">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+            <span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest">AI 助手</span>
+        </a>
+    </nav>
+
+    <script src="js/app.js"></script>
+    <script src="js/data-processor.js"></script>
+    <script src="js/ai-handler.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStoredData();
+        });
+    </script>
+</body>
+</html>

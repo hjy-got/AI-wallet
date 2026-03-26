@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html class="light" lang="zh-CN">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>AI钱包 - 商户经营分析</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-surface": "#050f1b",
+                        "primary": "#6d5a00",
+                        "primary-dim": "#5f4e00",
+                        "on-tertiary-container": "#005e39",
+                        "inverse-primary": "#fed737",
+                        "on-background": "#252f3d",
+                        "on-error-container": "#520c00",
+                        "primary-fixed": "#fed737",
+                        "secondary": "#595c60",
+                        "secondary-fixed-dim": "#d3d4da",
+                        "on-secondary-container": "#4f5256",
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#f4f6ff",
+                        "on-secondary": "#f1f2f8",
+                        "on-primary-container": "#5c4b00",
+                        "error": "#b02500",
+                        "secondary-fixed": "#e1e2e8",
+                        "surface": "#f4f6ff",
+                        "tertiary-fixed-dim": "#4fefa1",
+                        "on-surface-variant": "#525c6b",
+                        "error-container": "#f95630",
+                        "on-secondary-fixed-variant": "#595c60",
+                        "on-error": "#ffefec",
+                        "on-tertiary-fixed-variant": "#006940",
+                        "tertiary": "#006940",
+                        "on-tertiary": "#caffdb",
+                        "outline": "#6d7787",
+                        "surface-dim": "#c5d5ef",
+                        "outline-variant": "#a4aebf",
+                        "surface-container-high": "#d6e3fa",
+                        "primary-container": "#fed737",
+                        "surface-container": "#dce9ff",
+                        "surface-tint": "#6d5a00",
+                        "primary-fixed-dim": "#efc927",
+                        "on-tertiary-fixed": "#00492b",
+                        "surface-container-highest": "#cfdef6",
+                        "on-surface": "#252f3d",
+                        "tertiary-fixed": "#60feae",
+                        "secondary-dim": "#4d5054",
+                        "tertiary-dim": "#005c37",
+                        "surface-container-low": "#eaf1ff",
+                        "inverse-on-surface": "#939dae",
+                        "on-primary": "#fff2cf",
+                        "on-primary-fixed": "#463900",
+                        "error-dim": "#b92902",
+                        "surface-bright": "#f4f6ff",
+                        "tertiary-container": "#60feae",
+                        "on-secondary-fixed": "#3d3f44",
+                        "secondary-container": "#e1e2e8",
+                        "surface-variant": "#cfdef6",
+                        "on-primary-fixed-variant": "#675400"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .hidden-page { display: none; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+    <!-- TopAppBar -->
+    <header class="flex justify-between items-center px-6 py-4 w-full sticky top-0 z-50 bg-[#f4f6ff] transition-all duration-200">
+        <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-[#6d5a00] text-2xl">account_circle</span>
+            <h1 class="text-xl font-black text-[#6d5a00] tracking-tight">AI钱包</h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <button class="p-2 rounded-full hover:bg-[#fed737]/10 transition-all duration-200" onclick="showNotification('暂无新通知')">
+                <span class="material-symbols-outlined text-slate-500">notifications</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-6 py-6 space-y-8">
+        <!-- Time Filter Section -->
+        <section class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-extrabold tracking-tight text-on-background">数据看板</h2>
+                <p class="text-sm text-on-surface-variant">欢迎回来，您的商户实时经营概览。</p>
+            </div>
+            <div class="flex items-center bg-surface-container-low p-1.5 rounded-full shadow-sm">
+                <button onclick="setTimeGranularity('day')" id="btn-day" class="time-btn px-5 py-2 text-xs font-bold rounded-full bg-primary-container text-on-primary-container shadow-sm transition-all duration-200">日</button>
+                <button onclick="setTimeGranularity('week')" id="btn-week" class="time-btn px-5 py-2 text-xs font-medium rounded-full text-on-surface-variant hover:bg-surface-container-high transition-all duration-200">周</button>
+                <button onclick="setTimeGranularity('month')" id="btn-month" class="time-btn px-5 py-2 text-xs font-medium rounded-full text-on-surface-variant hover:bg-surface-container-high transition-all duration-200">月</button>
+                <button onclick="setTimeGranularity('custom')" id="btn-custom" class="time-btn px-5 py-2 text-xs font-medium rounded-full text-on-surface-variant hover:bg-surface-container-high transition-all duration-200">自定义</button>
+            </div>
+        </section>
+
+        <!-- KPI Bento Grid -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Total Revenue -->
+            <div class="bg-surface-container-lowest p-8 rounded-xl shadow-[0_12px_32px_rgba(37,47,61,0.04)] transition-all hover:translate-y-[-2px]">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-label-md font-bold text-on-surface-variant uppercase tracking-widest text-[10px]">总收入 (CNY)</span>
+                    <span class="material-symbols-outlined text-tertiary">trending_up</span>
+                </div>
+                <div class="space-y-1">
+                    <p class="text-4xl font-black text-on-surface tracking-tighter" id="kpi-revenue">¥0.00</p>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xs font-bold text-tertiary" id="revenue-change">+0%</span>
+                        <span class="text-[10px] text-on-surface-variant">较上期</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Orders -->
+            <div class="bg-surface-container-lowest p-8 rounded-xl shadow-[0_12px_32px_rgba(37,47,61,0.04)] transition-all hover:translate-y-[-2px]">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-label-md font-bold text-on-surface-variant uppercase tracking-widest text-[10px]">订单量</span>
+                    <span class="material-symbols-outlined text-primary">shopping_bag</span>
+                </div>
+                <div class="space-y-1">
+                    <p class="text-4xl font-black text-on-surface tracking-tighter" id="kpi-orders">0</p>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xs font-bold text-tertiary" id="orders-change">+0%</span>
+                        <span class="text-[10px] text-on-surface-variant">较上期</span>
+                    </div>
+                </div>
+            </div>
+            <!-- AOV -->
+            <div class="bg-surface-container-lowest p-8 rounded-xl shadow-[0_12px_32px_rgba(37,47,61,0.04)] transition-all hover:translate-y-[-2px]">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-label-md font-bold text-on-surface-variant uppercase tracking-widest text-[10px]">客单价</span>
+                    <span class="material-symbols-outlined text-outline">account_balance_wallet</span>
+                </div>
+                <div class="space-y-1">
+                    <p class="text-4xl font-black text-on-surface tracking-tighter" id="kpi-aov">¥0.00</p>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xs font-bold text-tertiary" id="aov-change">+0%</span>
+                        <span class="text-[10px] text-on-surface-variant">较上期</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trend Charts Section -->
+        <section class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            <!-- Sales Trend -->
+            <div class="bg-surface-container-lowest p-8 rounded-xl shadow-[0_12px_32px_rgba(37,47,61,0.04)] space-y-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-on-background">销售额趋势</h3>
+                    <div class="flex gap-2">
+                        <button onclick="setChartGranularity('revenue', 'week')" id="revenue-week-btn" class="chart-granularity-revenue text-[10px] font-bold px-3 py-1 rounded-full bg-surface-container text-on-surface-variant">周</button>
+                        <button onclick="setChartGranularity('revenue', 'month')" id="revenue-month-btn" class="chart-granularity-revenue text-[10px] font-bold px-3 py-1 rounded-full text-on-surface-variant">月</button>
+                        <button onclick="setChartGranularity('revenue', 'year')" id="revenue-year-btn" class="chart-granularity-revenue text-[10px] font-bold px-3 py-1 rounded-full text-on-surface-variant">年</button>
+                        <button onclick="setChartGranularity('revenue', 'custom')" id="revenue-custom-btn" class="chart-granularity-revenue text-[10px] font-bold px-3 py-1 rounded-full text-on-surface-variant">自定义</button>
+                    </div>
+                </div>
+                <div class="relative h-64 w-full">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+            <!-- Order Volume Trend -->
+            <div class="bg-surface-container-lowest p-8 rounded-xl shadow-[0_12px_32px_rgba(37,47,61,0.04)] space-y-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-on-background">订单量趋势</h3>
+                    <div class="flex gap-2">
+                        <button onclick="setChartGranularity('orders', 'week')" id="orders-week-btn" class="chart-granularity-orders text-[10px] font-bold px-3 py-1 rounded-full bg-surface-container text-on-surface-variant">周</button>
+                        <button onclick="setChartGranularity('orders', 'month')" id="orders-month-btn" class="chart-granularity-orders text-[10px] font-bold px-3 py-1 rounded-full text-on-surface-variant">月</button>
+                        <button onclick="setChartGranularity('orders', 'year')" id="orders-year-btn" class="chart-granularity-orders text-[10px] font-bold px-3 py-1 rounded-full text-on-surface-variant">年</button>
+                        <button onclick="setChartGranularity('orders', 'custom')" id="orders-custom-btn" class="chart-granularity-orders text-[10px] font-bold px-3 py-1 rounded-full text-on-surface-variant">自定义</button>
+                    </div>
+                </div>
+                <div class="relative h-64 w-full">
+                    <canvas id="ordersChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Status -->
+        <section id="data-status" class="hidden bg-surface-container-low rounded-xl p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-tertiary">check_circle</span>
+                <span class="text-sm font-medium">数据已加载，共 <span id="record-count">0</span> 条记录</span>
+            </div>
+            <button onclick="clearData()" class="text-xs text-outline hover:text-error">清除数据</button>
+        </section>
+    </main>
+
+    <!-- Upload Sticky Action -->
+    <div class="fixed bottom-24 left-0 w-full px-6 flex justify-center pointer-events-none">
+        <label for="file-upload" class="pointer-events-auto flex items-center gap-3 bg-inverse-surface text-surface-container-lowest px-8 py-4 rounded-full shadow-xl hover:scale-105 transition-transform duration-300 cursor-pointer group">
+            <span class="material-symbols-outlined text-[#fed737]">upload_file</span>
+            <span class="font-bold tracking-tight">上传Excel销售数据</span>
+        </label>
+        <input id="file-upload" type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleFileUpload(event)"/>
+    </div>
+
+    <!-- BottomNavBar -->
+    <nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 backdrop-blur-xl shadow-[0_-8px_24px_rgba(37,47,61,0.04)] rounded-t-3xl">
+        <a href="index.html" class="flex flex-col items-center justify-center bg-[#fed737] text-[#6d5a00] rounded-2xl p-2 shadow-[0_4px_12px_rgba(254,215,55,0.3)] transition-transform duration-300 active:scale-90">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+            <span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">首页</span>
+        </a>
+        <a href="analysis.html" class="flex flex-col items-center justify-center text-slate-400 p-2 hover:text-[#6d5a00] transition-transform duration-300 active:scale-90">
+            <span class="material-symbols-outlined">analytics</span>
+            <span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">数据分析</span>
+        </a>
+        <a href="ai-assistant.html" class="flex flex-col items-center justify-center text-slate-400 p-2 hover:text-[#6d5a00] transition-transform duration-300 active:scale-90">
+            <span class="material-symbols-outlined">smart_toy</span>
+            <span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">AI助手</span>
+        </a>
+    </nav>
+
+    <script src="js/app.js"></script>
+    <script src="js/data-processor.js"></script>
+    <script src="js/chart-handler.js"></script>
+    <script src="js/ai-handler.js"></script>
+    <script>
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStoredData();
+            // 如果有数据，更新所有模块
+            if (window.appState && window.appState.processedData) {
+                updateAllModules();
+            }
+        });
+    </script>
+</body>
+</html>

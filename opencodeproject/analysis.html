@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html class="light" lang="zh-CN">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>AI钱包 - 数据分析</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-surface": "#050f1b",
+                        "primary": "#6d5a00",
+                        "primary-dim": "#5f4e00",
+                        "on-tertiary-container": "#005e39",
+                        "inverse-primary": "#fed737",
+                        "on-background": "#252f3d",
+                        "on-error-container": "#520c00",
+                        "primary-fixed": "#fed737",
+                        "secondary": "#595c60",
+                        "secondary-fixed-dim": "#d3d4da",
+                        "on-secondary-container": "#4f5256",
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#f4f6ff",
+                        "on-secondary": "#f1f2f8",
+                        "on-primary-container": "#5c4b00",
+                        "error": "#b02500",
+                        "secondary-fixed": "#e1e2e8",
+                        "surface": "#f4f6ff",
+                        "tertiary-fixed-dim": "#4fefa1",
+                        "on-surface-variant": "#525c6b",
+                        "error-container": "#f95630",
+                        "on-secondary-fixed-variant": "#595c60",
+                        "on-error": "#ffefec",
+                        "on-tertiary-fixed-variant": "#006940",
+                        "tertiary": "#006940",
+                        "on-tertiary": "#caffdb",
+                        "outline": "#6d7787",
+                        "surface-dim": "#c5d5ef",
+                        "outline-variant": "#a4aebf",
+                        "surface-container-high": "#d6e3fa",
+                        "primary-container": "#fed737",
+                        "surface-container": "#dce9ff",
+                        "surface-tint": "#6d5a00",
+                        "primary-fixed-dim": "#efc927",
+                        "on-tertiary-fixed": "#00492b",
+                        "surface-container-highest": "#cfdef6",
+                        "on-surface": "#252f3d",
+                        "tertiary-fixed": "#60feae",
+                        "secondary-dim": "#4d5054",
+                        "tertiary-dim": "#005c37",
+                        "surface-container-low": "#eaf1ff",
+                        "inverse-on-surface": "#939dae",
+                        "on-primary": "#fff2cf",
+                        "on-primary-fixed": "#463900",
+                        "error-dim": "#b92902",
+                        "surface-bright": "#f4f6ff",
+                        "tertiary-container": "#60feae",
+                        "on-secondary-fixed": "#3d3f44",
+                        "secondary-container": "#e1e2e8",
+                        "surface-variant": "#cfdef6",
+                        "on-primary-fixed-variant": "#675400"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+    <!-- TopAppBar -->
+    <header class="flex justify-between items-center px-6 py-4 w-full sticky top-0 z-50 bg-[#f4f6ff]">
+        <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-[#6d5a00] transition-all duration-200 cursor-pointer">account_circle</span>
+            <h1 class="text-xl font-black text-[#6d5a00] tracking-tight">AI钱包</h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="material-symbols-outlined text-[#6d5a00] cursor-pointer" onclick="showNotification('暂无新通知')">notifications</span>
+        </div>
+    </header>
+
+    <main class="px-6 space-y-8 mt-4">
+        <!-- Global Time Filter -->
+        <section class="flex justify-center items-center p-1 bg-surface-container-low rounded-full w-fit mx-auto">
+            <button onclick="setAnalysisTimeGranularity('day')" id="analysis-btn-day" class="analysis-time-btn px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 hover:bg-[#fed737]/10 bg-primary-container text-on-primary-container shadow-sm">Day</button>
+            <button onclick="setAnalysisTimeGranularity('week')" id="analysis-btn-week" class="analysis-time-btn px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 hover:bg-[#fed737]/10 text-slate-500">Week</button>
+            <button onclick="setAnalysisTimeGranularity('month')" id="analysis-btn-month" class="analysis-time-btn px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 hover:bg-[#fed737]/10 text-slate-500">Month</button>
+            <button onclick="setAnalysisTimeGranularity('year')" id="analysis-btn-year" class="analysis-time-btn px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 hover:bg-[#fed737]/10 text-slate-500">Year</button>
+        </section>
+
+        <!-- Bento Grid: Main Analysis Content -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <!-- AI Assistant Section (核心能力) - Spans Full Width Top -->
+            <section class="md:col-span-12 glass-card rounded-xl p-6 shadow-[0_12px_32px_rgba(37,47,61,0.06)] overflow-hidden relative border border-white/20">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                        <h2 class="text-lg font-bold tracking-tight">AI经营助手</h2>
+                    </div>
+                    <span class="text-xs font-medium text-primary uppercase tracking-widest bg-primary-container/20 px-3 py-1 rounded-full">Active Analysis</span>
+                </div>
+                <div class="space-y-4" id="ai-insight-container">
+                    <div class="bg-surface-container-lowest p-5 rounded-xl border-l-4 border-primary shadow-sm">
+                        <div class="flex gap-4 items-start">
+                            <div class="p-2 bg-primary-container rounded-lg">
+                                <span class="material-symbols-outlined text-on-primary-container text-sm">psychology</span>
+                            </div>
+                            <div class="space-y-3" id="ai-insight-content">
+                                <div>
+                                    <h4 class="text-xs font-bold text-outline uppercase tracking-wider mb-1">数据结论</h4>
+                                    <p class="text-sm font-medium leading-relaxed">暂无数据，请先上传销售数据文件获取AI分析。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Forecast Module -->
+            <section class="md:col-span-4 grid grid-rows-2 gap-4">
+                <div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xs font-bold text-outline uppercase tracking-widest">销售额预测</h3>
+                        <span class="material-symbols-outlined text-tertiary text-lg">trending_up</span>
+                    </div>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-3xl font-black tracking-tighter" id="forecast-revenue">¥0</span>
+                        <span class="text-xs font-bold text-tertiary" id="forecast-revenue-change">+0%</span>
+                    </div>
+                    <p class="text-[10px] text-outline-variant mt-2">Next 7 Days Projected</p>
+                </div>
+                <div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xs font-bold text-outline uppercase tracking-widest">客流量预测</h3>
+                        <span class="material-symbols-outlined text-primary text-lg">group_add</span>
+                    </div>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-3xl font-black tracking-tighter" id="forecast-traffic">0</span>
+                        <span class="text-xs font-bold text-tertiary" id="forecast-traffic-change">+0%</span>
+                    </div>
+                    <p class="text-[10px] text-outline-variant mt-2">Next 7 Days Projected</p>
+                </div>
+            </section>
+
+            <!-- Payment Method Analysis (Pie Chart Placeholder) -->
+            <section class="md:col-span-4 bg-surface-container-lowest rounded-xl p-6 shadow-sm flex flex-col items-center justify-center text-center">
+                <h3 class="text-xs font-bold text-outline uppercase tracking-widest mb-6 self-start">支付方式占比</h3>
+                <div class="relative w-32 h-32 mb-6">
+                    <canvas id="paymentChart"></canvas>
+                </div>
+                <div class="grid grid-cols-2 w-full gap-2" id="payment-legend">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-primary-container"></div>
+                        <span class="text-[10px] font-bold">线上支付</span>
+                        <span class="text-[10px] font-bold text-outline" id="online-percent">0%</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-surface-container"></div>
+                        <span class="text-[10px] font-bold">线下支付</span>
+                        <span class="text-[10px] font-bold text-outline" id="offline-percent">0%</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Marketing Campaign Analysis -->
+            <section class="md:col-span-4 bg-surface-container-lowest rounded-xl p-6 shadow-sm">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xs font-bold text-outline uppercase tracking-widest">营销活动分析</h3>
+                    <select id="campaign-select" class="bg-transparent border-none text-xs font-bold text-primary focus:ring-0 p-0 pr-6" onchange="updateCampaignAnalysis()">
+                        <option value="">选择活动</option>
+                    </select>
+                </div>
+                <div class="space-y-6">
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <p class="text-[10px] font-bold text-outline-variant uppercase mb-1">Revenue</p>
+                            <p class="text-2xl font-black tracking-tight" id="campaign-revenue">¥0</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] font-bold text-outline-variant uppercase mb-1">ROI</p>
+                            <p class="text-2xl font-black text-tertiary tracking-tight" id="campaign-roi">0x</p>
+                        </div>
+                    </div>
+                    <div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+                        <div class="bg-primary-container h-full w-[0%]" id="campaign-performance-bar" style="width: 0%"></div>
+                    </div>
+                    <p class="text-[10px] text-outline leading-tight italic" id="campaign-comment">暂无活动数据</p>
+                </div>
+            </section>
+
+            <!-- Product Ranking Module - Full Width Bottom -->
+            <section class="md:col-span-12 bg-surface-container-lowest rounded-xl p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xs font-bold text-outline uppercase tracking-widest">Top 10 商品排行</h3>
+                    <div class="flex gap-2">
+                        <button onclick="setProductRankingType('sales')" id="ranking-sales-btn" class="ranking-type-btn px-3 py-1 text-[10px] font-bold rounded-full bg-surface-container text-on-surface-variant">销量</button>
+                        <button onclick="setProductRankingType('revenue')" id="ranking-revenue-btn" class="ranking-type-btn px-3 py-1 text-[10px] font-bold rounded-full text-on-surface-variant">销售额</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-[10px] text-outline-variant uppercase font-bold border-b border-surface-container">
+                                <th class="pb-4 font-bold">#</th>
+                                <th class="pb-4 font-bold">Item Name</th>
+                                <th class="pb-4 font-bold text-right">Sales</th>
+                                <th class="pb-4 font-bold text-right">Revenue</th>
+                                <th class="pb-4 font-bold text-right">Trend</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-surface-container/30" id="product-ranking-body">
+                            <tr>
+                                <td colspan="5" class="py-8 text-center text-on-surface-variant text-sm">暂无数据，请先上传销售数据</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- BottomNavBar -->
+    <nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 backdrop-blur-xl rounded-t-3xl shadow-[0_-8px_24px_rgba(37,47,61,0.04)]">
+        <a href="index.html" class="flex flex-col items-center justify-center text-slate-400 p-2 hover:text-[#6d5a00] transition-transform duration-300 active:scale-90">
+            <span class="material-symbols-outlined mb-1">dashboard</span>
+            <span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider">首页</span>
+        </a>
+        <a href="analysis.html" class="flex flex-col items-center justify-center bg-[#fed737] text-[#6d5a00] rounded-2xl p-2 shadow-[0_4px_12px_rgba(254,215,55,0.3)] transition-transform duration-300 active:scale-90">
+            <span class="material-symbols-outlined mb-1">analytics</span>
+            <span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider">数据分析</span>
+        </a>
+        <a href="ai-assistant.html" class="flex flex-col items-center justify-center text-slate-400 p-2 hover:text-[#6d5a00] transition-transform duration-300 active:scale-90">
+            <span class="material-symbols-outlined mb-1">smart_toy</span>
+            <span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider">AI助手</span>
+        </a>
+    </nav>
+
+    <script src="js/ai-handler.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/data-processor.js"></script>
+    <script src="js/chart-handler.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStoredData();
+            initAnalysisPage();
+        });
+    </script>
+</body>
+</html>
